@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   anorm,
   cache,
   ws,
-  "net.debasishg" %% "redisclient" % "3.0" sr
+  "net.debasishg" %% "redisclient" % "3.0"
 )
 
 unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )  
