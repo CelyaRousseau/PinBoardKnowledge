@@ -1,5 +1,4 @@
-package domain.links
+package domains
 
 class LinkRepository {
-
 }
