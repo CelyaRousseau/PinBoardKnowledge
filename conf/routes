@@ -3,4 +3,10 @@
 # ~~~~
 
 # Home page
-GET     /                           @controllers.Application.index
+GET        /             @controllers.Application.index
+
+# Links
+GET        /links        @controllers.Links.getLinks()
+
+# Tags
+GET        /tags         @controllers.Tags.getTags()
