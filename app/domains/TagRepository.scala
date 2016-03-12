@@ -2,13 +2,9 @@ package domains
 
 import play.api.libs.json._
 
-object TagRepository {
-  // @todo: find on redis
+object TagRepository extends RedisRepository{
   def findAll() = {
-    Json.obj(
-      "scala" -> 10,
-      "js" -> 100
-    )
+    redis.zrangeWithScore("tags").get.toMap
   }
 
   // return links having ALL specified tags
