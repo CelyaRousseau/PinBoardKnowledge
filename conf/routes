@@ -11,7 +11,6 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 # API routes
 
 GET     /links                      controllers.LinksController.findAll(limit: Int ?= 50, offset: Int ?= 0)
-GET     /links/:linkId              controllers.LinksController.findById(linkId: java.util.UUID)
+GET     /links/search               controllers.LinksController.find(tags: String)
 
 GET     /tags                       controllers.TagsController.findAll()
-GET     /tags/search                controllers.TagsController.findLinks(tags: String)

@@ -1,14 +1,18 @@
 package controllers
 
 import controllers.Application._
+import play.api.libs.json._
 import play.api.mvc._
+import domains._
 
 object LinksController {
   def findAll(limit: Int, offset: Int) = Action {
-    Ok("TODO")
+    implicit request =>
+      Ok(Json.toJson(LinkRepository.findAll(limit, offset)))
   }
 
-  def findById(linkId: java.util.UUID) = Action {
-    Ok("TODO")
+  def find(tags: String) = Action {
+    implicit request =>
+      Ok(Json.toJson(TagRepository.findLinks(tags.split(","))))
   }
 }
