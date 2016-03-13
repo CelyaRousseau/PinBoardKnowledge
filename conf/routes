@@ -3,10 +3,11 @@
 # ~~~~
 
 # Home page
-GET        /             @controllers.Application.index
+GET     /                           @controllers.Application.index
 
 # Links
-GET        /links        @controllers.Links.getLinks()
+GET     /links                      @controllers.LinksController.findAll(limit: Int ?= 10, offset: Int ?= 0)
+GET     /links/search               @controllers.LinksController.find(tags: String)
 
 # Tags
-GET        /tags         @controllers.Tags.getTags()
+GET     /tags                       @controllers.TagsController.findAll()

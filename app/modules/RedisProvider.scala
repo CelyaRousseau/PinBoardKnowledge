@@ -8,7 +8,11 @@ class RedisProvider extends AbstractModule {
 
   @Provides
   def provideRedisClientPool(configuration: Configuration) = {
-    new RedisClientPool(configuration.getString("redis.host"), configuration.getString("redis.port").toInt)
+    new RedisClientPool(
+      configuration.getString("redis.host"),
+      configuration.getInt("redis.port"),
+      secret = Option(configuration.getString("redis.secret"))
+    )
   }
 
   override def configure(): Unit = {}

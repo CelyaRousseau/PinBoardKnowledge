@@ -1,7 +1,6 @@
-package domain.links
+package domains
 
-import javax.inject._
-
+import javax.inject.Inject
 import com.redis.RedisClientPool
 
 class LinkRepository @Inject() (pool: RedisClientPool)  {
