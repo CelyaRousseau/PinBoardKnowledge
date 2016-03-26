@@ -2,17 +2,14 @@ package domains
 
 import javax.inject.Inject
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.redis.RedisClientPool
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
-import play.api.libs.json.{Json, JsArray, JsValue}
-import play.libs.Json
-import play.libs.Json
+import play.api.libs.json.{JsArray, JsValue, Json}
 
 class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagRepository) {
 
-  def findAll(limit: Int, offset: Int): List[JsonNode] = {
+  def findAll(limit: Int, offset: Int): List[JsValue] = {
     pool.withClient {
       client => {
         client.zrange("links", offset, offset + limit).get
