@@ -18,4 +18,14 @@ class TagRepository @Inject() (pool: RedisClientPool)  {
   def findLinks(tags: Array[String]) = {
     Json.arr(tags) // @todo: find them in redis
   }
+
+  def addTags(tags: collection.mutable.Map[String, Int]) = {
+    pool.withClient {
+      client => {
+        tags map { tag =>
+          client.zincrby("tags", tag._2, tag._1).get
+        }
+      }
+    }
+  }
 }

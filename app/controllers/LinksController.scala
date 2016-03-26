@@ -8,10 +8,11 @@ import play.api.mvc.{Action, Controller}
 class LinksController @Inject()(linkRepository: LinkRepository) extends Controller {
 
   def findAll(limit: Int, offset: Int) = Action { request =>
-    Ok(Json.toJson(linkRepository.getLinks()))
+    Ok(Json.toJson(linkRepository.findAll(limit, offset)))
   }
 
-  def find(tags: String) = play.mvc.Results.TODO
-
-  def insertAll() = play.mvc.Results.TODO
+  def insertAll() = Action(parse.json) { request =>
+    linkRepository.addLinks(request.body)
+    Ok("Links Created")
+  }
 }
