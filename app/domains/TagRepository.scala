@@ -19,11 +19,11 @@ class TagRepository @Inject() (pool: RedisClientPool)  {
     Json.arr(tags) // @todo: find them in redis
   }
 
-  def addTags(tags: collection.mutable.Map[String, Int]) = {
+  def create(tags: List[String]) = {
     pool.withClient {
       client => {
-        tags map { tag =>
-          client.zincrby("tags", tag._2, tag._1).get
+        tags map {
+          client.zincrby("tags", 1, _).get
         }
       }
     }

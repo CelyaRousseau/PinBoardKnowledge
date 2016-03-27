@@ -21,15 +21,12 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
 
   def create(JSONLink: JsValue) = {
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-dd-MM'T'HH:mm:ss'Z")
-    var tags = collection.mutable.Map[String, Int]().withDefaultValue(0)
     pool.withClient {
       client => {
         val link = JSONLink.asInstanceOf[JsValue]
         client.zadd("links", new DateTime().getMillis, link).get
-        (link \ "tags").as[String].split(" ").foreach { tag =>
-          tags += (tag -> (tags.getOrElse(tag, 0) + 1))
-        }
-        tagRepository.addTags(tags)
+        // @todo: aldo add link in tags:tag
+        tagRepository.create((JSONLink \ "tags").as[List[String]])
       }
     }
   }
