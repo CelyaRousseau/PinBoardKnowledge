@@ -9,7 +9,7 @@ class LinksController @Inject()(linkRepository: LinkRepository) extends Controll
 
   def findAll(limit: Int, offset: Int, filters: Option[String]) = Action { request =>
     filters match {
-      case Some(filter) => Ok(Json.toJson(linkRepository.findAllFilteredByTags(limit, offset, filter.split(" "))))
+      case Some(filter) => Ok(Json.toJson(linkRepository.findAllFilteredByTags(limit, offset, filter.split(" ").toList)))
       case None => Ok(Json.toJson(linkRepository.findAll(limit, offset)))
     }
   }
