@@ -14,7 +14,28 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
       client => {
         Json.obj(
           "count" -> client.zcount("links").get,
-          "links" -> client.zrange("links", offset, offset + limit).get.map(Json.parse(_))
+          "links" -> client.zrange("links", offset, offset + limit - 1).get.map(Json.parse(_))
+        )
+      }
+    }
+  }
+
+  def findAllFilteredByTags(limit: Int, offset: Int, filters: Array[String]) = {
+    pool.withClient {
+      client => {
+        val links = filters map { filter =>
+          client.smembers("tags:" + filter).get
+        }
+
+        println(links)
+
+        val allLinks = client.sinter(links).get
+
+        println(allLinks)
+
+        Json.obj(
+          "count" -> client.zcount("links").get,
+          "links" -> links.toString
         )
       }
     }
@@ -36,5 +57,9 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
         tagRepository.createOrUpdate(tags)
       }
     }
+  }
+
+  def search(tags: Array[String]): Unit = {
+
   }
 }

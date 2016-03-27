@@ -6,7 +6,7 @@
 GET         /                    @controllers.Application.index
 
 # Links
-GET         /links               @controllers.LinksController.findAll(limit: Int ?= 10, offset: Int ?= 0)
+GET         /links               @controllers.LinksController.findAll(limit: Int ?= 10, offset: Int ?= 0, filters: Option[String])
 GET         /links/search        @controllers.LinksController.find(filters: Option[String], q : Option[String])
 POST        /links               @controllers.LinksController.create()
 
