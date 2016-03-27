@@ -14,7 +14,7 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
       client => {
         Json.obj(
           "count" -> client.zcount("links").get,
-          "links" -> client.zrange("links", offset, offset + limit).get.map(Json.parse(_))
+          "links" -> client.zrange("links", offset, offset + limit - 1).get.map(Json.parse(_))
         )
       }
     }
