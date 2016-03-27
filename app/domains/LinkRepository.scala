@@ -29,6 +29,7 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
           client.zadd("links", datetime.getMillis, link).get
           (link \ "tags").as[String].split(" ").foreach { tag =>
             tags += (tag -> (tags.getOrElse(tag, 0) + 1))
+            tagRepository.addLinkToTag(tag, link)
           }
         }
         tagRepository.addTags(tags)

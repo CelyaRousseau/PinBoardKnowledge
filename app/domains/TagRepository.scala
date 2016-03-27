@@ -3,14 +3,18 @@ package domains
 import javax.inject.Inject
 
 import com.redis.RedisClientPool
+import models.Tag
 import play.api.libs.json._
 
-class TagRepository @Inject() (pool: RedisClientPool)  {
-  def findAll() : List[String] = {
+class TagRepository @Inject()(pool: RedisClientPool) {
+  def findAll(): List[JsValue] = {
     pool.withClient {
       client => {
-        client.zrange("tags").get
+        client.zrangeWithScore("tags").get
       }
+    }.map { tag =>
+      val filter: Tag = new Tag(tag._1, tag._2.toInt)
+      Json.toJson(filter)
     }
   }
 
@@ -25,6 +29,14 @@ class TagRepository @Inject() (pool: RedisClientPool)  {
         tags map { tag =>
           client.zincrby("tags", tag._2, tag._1).get
         }
+      }
+    }
+  }
+
+  def addLinkToTag(tagName: String, link: JsValue) = {
+    pool.withClient {
+      client => {
+        client.sadd("tags:" + tagName, link).get
       }
     }
   }
