@@ -11,8 +11,8 @@ class LinksController @Inject()(linkRepository: LinkRepository) extends Controll
     Ok(Json.toJson(linkRepository.findAll(limit, offset)))
   }
 
-  def insertAll() = Action(parse.json) { request =>
-    linkRepository.addLinks(request.body)
+  def create() = Action(parse.json) { request =>
+    linkRepository.create(request.body)
     Ok("Links Created")
   }
 }
