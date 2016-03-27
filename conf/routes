@@ -7,9 +7,8 @@ GET         /                    @controllers.Application.index
 
 # Links
 GET         /links               @controllers.LinksController.findAll(limit: Int ?= 10, offset: Int ?= 0)
-GET         /links/search        @controllers.LinksController.find(tags: String)
+GET         /links/search        @controllers.LinksController.search(filters: Option[String], q : Option[String])
 POST        /links               @controllers.LinksController.insertAll()
-
 
 # Tags
 GET         /tags                @controllers.TagsController.findAll()
