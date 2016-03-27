@@ -9,13 +9,14 @@ import play.api.libs.json.{JsArray, JsValue, Json}
 
 class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagRepository) {
 
-  def findAll(limit: Int, offset: Int): List[JsValue] = {
+  def findAll(limit: Int, offset: Int) = {
     pool.withClient {
       client => {
-        client.zrange("links", offset, offset + limit).get
+        Json.obj(
+          "count" -> client.zcount("links").get,
+          "links" -> client.zrange("links", offset, offset + limit).get.map(Json.parse(_))
+        )
       }
-    }.map { link =>
-      Json.parse(link)
     }
   }
 
