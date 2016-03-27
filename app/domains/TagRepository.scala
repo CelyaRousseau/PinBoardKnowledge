@@ -23,7 +23,7 @@ class TagRepository @Inject()(pool: RedisClientPool) {
     Json.arr(tags) // @todo: find them in redis
   }
 
-  def addTags(tags: collection.mutable.Map[String, Int]) = {
+  def createOrUpdate(tags: collection.mutable.Map[String, Int]) = {
     pool.withClient {
       client => {
         tags map { tag =>
@@ -33,7 +33,7 @@ class TagRepository @Inject()(pool: RedisClientPool) {
     }
   }
 
-  def addLinkToTag(tagName: String, link: JsValue) = {
+  def createLinkForTag(tagName: String, link: JsValue) = {
     pool.withClient {
       client => {
         client.sadd("tags:" + tagName, link).get

@@ -11,18 +11,18 @@ class LinksController @Inject()(linkRepository: LinkRepository) extends Controll
     Ok(Json.toJson(linkRepository.findAll(limit, offset)))
   }
 
-  def search(filters: Option[String], query: Option[String]) = Action {
-  /*  val tags : Array[String] = filters match {
-      case Some(filter) => filter.split("+")
-      case None =>
-    }
+  def find(filters: Option[String], query: Option[String]) = Action {
+    /*  val tags : Array[String] = filters match {
+        case Some(filter) => filter.split("+")
+        case None =>
+      }
 
-    Ok(Json.toJson(linkRepository.search(tags)))*/
+      Ok(Json.toJson(linkRepository.search(tags)))*/
     Ok("blop")
   }
 
-  def insertAll() = Action(parse.json) { request =>
-    linkRepository.addLinks(request.body)
+  def create() = Action(parse.json) { request =>
+    linkRepository.create(request.body)
     Ok("Links Created")
   }
 }
