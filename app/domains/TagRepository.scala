@@ -8,6 +8,16 @@ import models.Tag
 import play.api.libs.json._
 
 class TagRepository @Inject()(pool: RedisClientPool) {
+  def findByPattern(pattern: Option[String]) = {
+    pool.withClient {
+      client => {
+        client.zrangeWithScore("tags", sortAs = DESC).get
+          .filter { _._1.startsWith(pattern.get) }
+          .map { tag => Json.toJson(new Tag(tag._1, tag._2.toInt)) }
+      }
+    }
+  }
+
   def findAll(): List[JsValue] = {
     pool.withClient {
       client => {

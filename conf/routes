@@ -11,4 +11,4 @@ GET         /links/intersect        @controllers.LinksController.findAllWithInte
 POST        /links                  @controllers.LinksController.create()
 
 # Tags
-GET         /tags                   @controllers.TagsController.findAll()
+GET         /tags                @controllers.TagsController.findAll(pattern: Option[String])
