@@ -20,14 +20,14 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
     }
   }
 
-  def findAllFilteredByTags(limit: Int, offset: Int, filters: List[String]) = {
+  def findAllFilteredByTags(limit: Int, offset: Int, tags: List[String]) = {
     pool.withClient {
       client => {
-        val filter = filters.map { filter =>
-          "tags:" + filter
+        val filters = tags.map { tag =>
+          "tags:" + tag
         }
 
-        val allLinks = client.sinter(filter.head, filter.tail: _*).get
+        val allLinks = client.sinter(filters.head, filters.tail: _*).get
 
         Json.obj(
           "count" -> (allLinks.toList.length),
