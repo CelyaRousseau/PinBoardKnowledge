@@ -30,7 +30,7 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
         val allLinks = client.sinter(filter.head, filter.tail: _*).get
 
         Json.obj(
-          "count" -> (allLinks.toList.length - 1),
+          "count" -> (allLinks.toList.length),
           "links" -> allLinks.map { link => Json.parse(link.get) }
         )
       }
