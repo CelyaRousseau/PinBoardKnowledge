@@ -2,6 +2,7 @@ package domains
 
 import javax.inject.Inject
 
+import com.redis.RedisClient._
 import com.redis.RedisClientPool
 import models.Tag
 import play.api.libs.json._
@@ -10,7 +11,7 @@ class TagRepository @Inject()(pool: RedisClientPool) {
   def findAll(): List[JsValue] = {
     pool.withClient {
       client => {
-        client.zrangeWithScore("tags").get
+        client.zrangeWithScore("tags", sortAs = DESC).get
       }
     }.map { tag =>
       val filter: Tag = new Tag(tag._1, tag._2.toInt)
