@@ -9,6 +9,41 @@ import play.api.libs.json.{JsArray, JsValue, Json}
 
 class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagRepository) {
 
+  def findAllFilteredByTags(limit: Int, offset: Int, filters: List[String]) = {
+    pool.withClient {
+      client => {
+        val tags = filters.map { tag =>
+          "tags:" + tag
+        }
+
+        val allLinks = client.sunion(tags.head, tags.tail: _*).get
+
+        Json.obj(
+          "count" -> allLinks.toList.length,
+          "links" -> allLinks.map { link => Json.parse(link.get) }.slice(offset, offset + limit)
+        )
+      }
+    }
+  }
+
+  def findAllFilteredByTagsAndQuery(limit: Int, offset: Int, query: String, filters: List[String]) = {
+    pool.withClient {
+      client => {
+        val tags = filters.map { filter =>
+          "tags:" + filter
+        }
+
+        val allLinks: Set[String] = client.sunion(tags.head, tags.tail: _*).get.flatten
+          .filter(x => x.matches(".*" + query + ".*"))
+
+        Json.obj(
+          "count" -> allLinks.toList.length,
+          "links" -> allLinks.map { link => Json.parse(link) }
+        )
+      }
+    }
+  }
+
   def findAll(limit: Int, offset: Int) = {
     pool.withClient {
       client => {
@@ -23,7 +58,7 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
   def findAllFilteredByQuery(limit: Int, offset: Int, query: String): JsValue = {
     pool.withClient {
       client => {
-        val links: List[String] = client.zscan("links", 0, "*" + query + "*", limit).get._2.get.flatten.zipWithIndex.filter(_._2 % 2 == 0).map(_._1)
+        val links: List[String] = client.zscan("links", offset, "*" + query + "*", limit).get._2.get.flatten.zipWithIndex.filter(_._2 % 2 == 0).map(_._1)
 
         Json.obj(
           "count" -> links.length,
@@ -33,25 +68,25 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
     }
   }
 
-  def findAllFilteredByTags(limit: Int, offset: Int, filters: List[String]): JsValue = {
+  def findAllWithIntersectByTags(limit: Int, offset: Int, filters: List[String]): JsValue = {
     pool.withClient {
       client => {
-        val filter = filters.map { filter =>
-          "tags:" + filter
+        val tags = filters.map { tag =>
+          "tags:" + tag
         }
 
-        val allLinks = client.sinter(filter.head, filter.tail: _*).get
+        val allLinks = client.sinter(tags.head, tags.tail: _*).get
 
         Json.obj(
           "count" -> allLinks.toList.length,
-          "links" -> allLinks.map { link => Json.parse(link.get) }
+          "links" -> allLinks.map { link => Json.parse(link.get) }.slice(offset, offset + limit)
         )
       }
     }
   }
 
 
-  def findAllFilteredByTagsAndQuery(limit: Int, offset: Int, query: String, filters: List[String]): JsValue = {
+  def findAllFilteredWithIntersectByTagsAndQuery(limit: Int, offset: Int, query: String, filters: List[String]): JsValue = {
     pool.withClient {
       client => {
         val filter = filters.map { filter =>
@@ -59,7 +94,7 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
         }
 
         val allLinks: Set[String] = client.sinter(filter.head, filter.tail: _*).get.flatten
-          .filter(x => x.matches(".*"+query+".*") )
+          .filter(x => x.matches(".*" + query + ".*"))
 
         Json.obj(
           "count" -> allLinks.toList.length,
@@ -85,9 +120,5 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
         tagRepository.createOrUpdate(tags)
       }
     }
-  }
-
-  def search(tags: Array[String]): Unit = {
-
   }
 }
