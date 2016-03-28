@@ -7,21 +7,13 @@ import play.api.mvc.{Action, Controller}
 
 class LinksController @Inject()(linkRepository: LinkRepository) extends Controller {
 
-  def findAll(limit: Int, offset: Int, filters: Option[String]) = Action { request =>
-    filters match {
-      case Some(filter) => Ok(Json.toJson(linkRepository.findAllFilteredByTags(limit, offset, filter.split(" ").toList)))
-      case None => Ok(Json.toJson(linkRepository.findAll(limit, offset)))
+  def findAll(limit: Int, offset: Int, filters: Option[String], q: Option[String]) = Action { request =>
+    (q, filters) match {
+      case (Some(query), Some(filter)) => Ok(Json.toJson(linkRepository.findAllFilteredByTagsAndQuery(limit, offset, query, filter.split(" ").toList)))
+      case (Some(query), None) => Ok(Json.toJson(linkRepository.findAllFilteredByQuery(limit,offset,query)))
+      case (None, Some(filter)) => Ok(Json.toJson(linkRepository.findAllFilteredByTags(limit, offset, filter.split(" ").toList)))
+      case (None, None) => Ok(Json.toJson(linkRepository.findAll(limit, offset)))
     }
-  }
-
-  def find(filters: Option[String], query: Option[String]) = Action {
-     /* val tagsName : Array[String] = filters match {
-        case Some(filter) => filter.split("+")
-        case None =>
-      }
-
-    Ok(Json.toJson(linkRepository.search(tagsName)))*/
-    Ok("blop")
   }
 
   def create() = Action(parse.json) { request =>
