@@ -31,7 +31,7 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
 
         Json.obj(
           "count" -> (allLinks.toList.length),
-          "links" -> allLinks.map { link => Json.parse(link.get) }
+          "links" -> allLinks.map { link => Json.parse(link.get) }.slice(offset, offset + limit)
         )
       }
     }
