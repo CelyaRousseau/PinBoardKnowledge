@@ -11,4 +11,4 @@ GET         /links/search        @controllers.LinksController.find(filters: Opti
 POST        /links               @controllers.LinksController.create()
 
 # Tags
-GET         /tags                @controllers.TagsController.findAll()
+GET         /tags                @controllers.TagsController.findAll(pattern: Option[String])
