@@ -11,10 +11,11 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
 
   def findAllWithParameters(limit: Int, offset: Int, q: Option[String], f: Option[String], intersect: Option[Boolean]): JsValue = {
     val links: List[JsValue] = (q, f) match {
+    val links: List[JsValue] = (q, t) match {
       case (None, None) => findAll
-      case (Some(query), None) => findAllFilteredByQuery(query)
-      case (None, Some(filter)) => findAllFilteredByTags(filter.split(",").toList, intersect)
-      case (Some(query), Some(filter)) => findAllFilteredByTagsAndQuery(query, filter.split(",").toList, intersect)
+      case (Some(query), None) => findAllFilteredByQuery(query.split(",").toList)
+      case (None, Some(tag)) => findAllFilteredByTags(tag.split(",").toList, intersect)
+      case (Some(query), Some(tag)) => findAllFilteredByTagsAndQuery(query.split(",").toList, tag.split(",").toList, intersect)
     }
 
     Json.obj(
@@ -31,17 +32,27 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
     }
   }
 
-  def findAllFilteredByQuery(query: String): List[JsValue] = {
-    pool.withClient {
-      client => {
-        val pattern = "(?i).*" + query + ".*"
+  def findAllFilteredByQuery(query: List[String], links: Option[List[JsValue]] = None): List[JsValue] = {
+    val pattern = "(?i).*" + query.head + ".*" + query.tail.map(word => "|.*" + word + ".*").mkString
 
-        client.zrange("links").get
-          .map { link => Json.parse(link) }
-          .collect({
-            case (link) if (link \ "description").as[String].matches(pattern)
-              || (link \ "extended").as[String].matches(pattern) => link
-          })
+    links match {
+      case Some(link) => {
+        link.collect({
+          case (jsonLink) if (jsonLink \ "description").as[String].matches(pattern)
+            || (jsonLink \ "extended").as[String].matches(pattern) => jsonLink
+        })
+      }
+      case None => {
+        pool.withClient {
+          client => {
+            client.zrange("links").get
+              .map { link => Json.parse(link) }
+              .collect({
+                case (link) if (link \ "description").as[String].matches(pattern)
+                  || (link \ "extended").as[String].matches(pattern) => link
+              })
+          }
+        }
       }
     }
   }
@@ -73,6 +84,8 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
         })
       }
     }
+  def findAllFilteredByTagsAndQuery(query: List[String], tags: List[String], intersect: Option[Boolean]): List[JsValue] = {
+    findAllFilteredByQuery(query, Some(findAllFilteredByTags(tags, intersect)))
   }
 
   def create(JSONLinks: JsValue) = {
