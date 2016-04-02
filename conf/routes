@@ -3,12 +3,11 @@
 # ~~~~
 
 # Home page
-GET         /                       @controllers.Application.index
+GET         /             @controllers.Application.index
 
 # Links
-GET         /links                  @controllers.LinksController.findAll(limit: Int ?= 10, offset: Int ?= 0, filters: Option[String], q : Option[String])
-GET         /links/intersect        @controllers.LinksController.findAllWithIntersect(limit: Int ?= 10, offset: Int ?= 0, filters: Option[String], q : Option[String])
-POST        /links                  @controllers.LinksController.create()
+GET         /links        @controllers.LinksController.findAll(limit: Int ?= 10, offset: Int ?= 0, filters: Option[String], q : Option[String], intersect : Option[Boolean])
+POST        /links        @controllers.LinksController.create()
 
 # Tags
-GET         /tags                @controllers.TagsController.findAll(pattern: Option[String])
+GET         /tags         @controllers.TagsController.findAll(pattern: Option[String])

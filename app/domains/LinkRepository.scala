@@ -9,98 +9,68 @@ import play.api.libs.json.{JsArray, JsValue, Json}
 
 class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagRepository) {
 
-  def findAllFilteredByTags(limit: Int, offset: Int, filters: List[String]) = {
+  def findAllWithParameters(limit: Int, offset: Int, q: Option[String], f: Option[String], intersect: Option[Boolean]): JsValue = {
+    val links: List[JsValue] = (q, f) match {
+      case (None, None) => findAll
+      case (Some(query), None) => findAllFilteredByQuery(query)
+      case (None, Some(filter)) => findAllFilteredByTags(filter.split(",").toList, intersect)
+      case (Some(query), Some(filter)) => findAllFilteredByTagsAndQuery(query, filter.split(",").toList, intersect)
+    }
+
+    Json.obj(
+      "count" -> links.length,
+      "links" -> links.slice(offset, offset + limit)
+    )
+  }
+
+  def findAll: List[JsValue] = {
+    pool.withClient {
+      client => {
+        client.zrange("links").get.map(link => Json.parse(link))
+      }
+    }
+  }
+
+  def findAllFilteredByQuery(query: String): List[JsValue] = {
+    pool.withClient {
+      client => {
+        val pattern = "(?i).*" + query + ".*"
+
+        client.zrange("links").get
+          .map { link => Json.parse(link) }
+          .collect({
+            case (link) if (link \ "description").as[String].matches(pattern)
+              || (link \ "extended").as[String].matches(pattern) => link
+          })
+      }
+    }
+  }
+
+  def findAllFilteredByTags(filters: List[String], intersect: Option[Boolean]): List[JsValue] = {
     pool.withClient {
       client => {
         val tags = filters.map { tag =>
           "tags:" + tag
         }
 
-        val allLinks = client.sunion(tags.head, tags.tail: _*).get
-
-        Json.obj(
-          "count" -> allLinks.toList.length,
-          "links" -> allLinks.map { link => Json.parse(link.get) }.slice(offset, offset + limit)
-        )
-      }
-    }
-  }
-
-  def findAllFilteredByTagsAndQuery(limit: Int, offset: Int, query: String, filters: List[String]) = {
-    pool.withClient {
-      client => {
-        val tags = filters.map { filter =>
-          "tags:" + filter
+        intersect match {
+          case Some(true) => client.sinter(tags.head, tags.tail: _*)
+          case _ => client.sunion(tags.head, tags.tail: _*)
         }
 
-        val allLinks: Set[String] = client.sunion(tags.head, tags.tail: _*).get.flatten
-          .filter(x => x.matches(".*" + query + ".*"))
-
-        Json.obj(
-          "count" -> allLinks.toList.length,
-          "links" -> allLinks.map { link => Json.parse(link) }
-        )
-      }
-    }
+      }.get
+    }.map(link => Json.parse(link.get)).toList
   }
 
-  def findAll(limit: Int, offset: Int) = {
+  def findAllFilteredByTagsAndQuery(query: String, filters: List[String], intersect: Option[Boolean]): List[JsValue] = {
     pool.withClient {
       client => {
-        Json.obj(
-          "count" -> client.zcount("links").get,
-          "links" -> client.zrange("links", offset, offset + limit - 1).get.map(Json.parse(_))
-        )
-      }
-    }
-  }
+        val pattern = "(?i).*" + query + ".*"
 
-  def findAllFilteredByQuery(limit: Int, offset: Int, query: String): JsValue = {
-    pool.withClient {
-      client => {
-        val links: List[String] = client.zrange("links", offset, limit).get
-          .filter(x => x.matches(".*" + query + ".*"))
-
-        Json.obj(
-          "count" -> links.length,
-          "links" -> links.map(Json.parse(_))
-        )
-      }
-    }
-  }
-
-  def findAllWithIntersectByTags(limit: Int, offset: Int, filters: List[String]): JsValue = {
-    pool.withClient {
-      client => {
-        val tags = filters.map { tag =>
-          "tags:" + tag
-        }
-
-        val allLinks = client.sinter(tags.head, tags.tail: _*).get
-
-        Json.obj(
-          "count" -> allLinks.toList.length,
-          "links" -> allLinks.map { link => Json.parse(link.get) }.slice(offset, offset + limit)
-        )
-      }
-    }
-  }
-
-
-  def findAllFilteredWithIntersectByTagsAndQuery(limit: Int, offset: Int, query: String, filters: List[String]): JsValue = {
-    pool.withClient {
-      client => {
-        val filter = filters.map { filter =>
-          "tags:" + filter
-        }
-
-        val allLinks: Set[String] = client.sinter(filter.head, filter.tail: _*).get.flatten
-          .filter(x => x.matches(".*" + query + ".*"))
-
-        Json.obj(
-          "count" -> allLinks.toList.length,
-          "links" -> allLinks.map { link => Json.parse(link) }
-        )
+        findAllFilteredByTags(filters, intersect).collect({
+          case (link) if (link \ "description").as[String].matches(pattern)
+            || (link \ "extended").as[String].matches(pattern) => link
+        })
       }
     }
   }
