@@ -6,7 +6,7 @@
 GET         /             @controllers.Application.index
 
 # Links
-GET         /links        @controllers.LinksController.findAll(limit: Int ?= 10, offset: Int ?= 0, filters: Option[String], q : Option[String], intersect : Option[Boolean])
+GET         /links        @controllers.LinksController.findAll(limit: Int ?= 10, offset: Int ?= 0, tags: Option[String], q : Option[String], intersect : Option[Boolean])
 POST        /links        @controllers.LinksController.create()
 
 # Tags
