@@ -58,7 +58,8 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
   def findAllFilteredByQuery(limit: Int, offset: Int, query: String): JsValue = {
     pool.withClient {
       client => {
-        val links: List[String] = client.zscan("links", offset, "*" + query + "*", limit).get._2.get.flatten.zipWithIndex.filter(_._2 % 2 == 0).map(_._1)
+        val links: List[String] = client.zrange("links", offset, limit).get
+          .filter(x => x.matches(".*" + query + ".*"))
 
         Json.obj(
           "count" -> links.length,
