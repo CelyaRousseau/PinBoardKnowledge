@@ -134,7 +134,7 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
         // add link in tags:`tag` Set
         tags.foreach { tag => tagRepository.createLinkForTag(tag, link) }
 
-        // increment tags in tags Zset
+        // create or increment tags in tags Zset
         tagRepository.createOrUpdate(tags)
       }
     }
