@@ -86,3 +86,7 @@ server.pid
 *.eml
 /dist/
 .cache
+
+
+### Misc ###
+scripts/fill-db/node_modules/
