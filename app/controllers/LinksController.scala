@@ -13,6 +13,12 @@ class LinksController @Inject()(linkRepository: LinkRepository) extends Controll
 
   def create() = Action(parse.json) { request =>
     linkRepository.create(request.body)
-    Ok("Links Created")
+    Status(201)
+  }
+
+  // debug: we use this to import the JSON file (reading.json), you can also use the script in /scripts/fill-db
+  def createFromImport() = Action(parse.json) { request =>
+    linkRepository.createFromImport(request.body)
+    Status(201)
   }
 }

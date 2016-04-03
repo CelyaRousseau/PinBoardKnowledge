@@ -7,12 +7,16 @@ import com.redis.RedisClientPool
 import models.Tag
 import play.api.libs.json._
 
+import scala.collection.mutable
+
 class TagRepository @Inject()(pool: RedisClientPool) {
   def findByPattern(pattern: Option[String]) = {
     pool.withClient {
       client => {
         client.zrangeWithScore("tags", sortAs = DESC).get
-          .filter { _._1.startsWith(pattern.get) }
+          .filter {
+            _._1.startsWith(pattern.get)
+          }
           .map { tag => Json.toJson(new Tag(tag._1, tag._2.toInt)) }
       }
     }
@@ -34,12 +38,10 @@ class TagRepository @Inject()(pool: RedisClientPool) {
     Json.arr(tags) // @todo: find them in redis
   }
 
-  def createOrUpdate(tags: collection.mutable.Map[String, Int]) = {
+  def createOrUpdate(tags: List[String]) = {
     pool.withClient {
       client => {
-        tags map { tag =>
-          client.zincrby("tags", tag._2, tag._1).get
-        }
+        tags foreach { tag => client.zincrby("tags", 1, tag) }
       }
     }
   }
@@ -47,7 +49,17 @@ class TagRepository @Inject()(pool: RedisClientPool) {
   def createLinkForTag(tagName: String, link: JsValue) = {
     pool.withClient {
       client => {
-        client.sadd("tags:" + tagName, link).get
+        client.sadd("tags:" + tagName, link)
+      }
+    }
+  }
+
+  def createOrUpdateFromImport(tags: collection.mutable.Map[String, Int]) = {
+    pool.withClient {
+      client => {
+        tags map { tag =>
+          client.zincrby("tags", tag._2, tag._1).get
+        }
       }
     }
   }
