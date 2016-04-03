@@ -89,4 +89,4 @@ server.pid
 
 
 ### Misc ###
-/node_modules/
+scripts/fill-db/node_modules/
