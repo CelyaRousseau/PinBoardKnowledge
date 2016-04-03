@@ -66,11 +66,10 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
         pool.withClient {
           client => {
             client.zrange("links").get
-              .map { link => Json.parse(link) }
-              .collect({
-                case (link) if (link \ "description").as[String].matches(pattern)
-                  || (link \ "extended").as[String].matches(pattern) => link
-              })
+              .map(Json.parse)
+              .filter(link => (link \ "title").as[String].matches(pattern)
+                  || (link \ "description").as[String].matches(pattern)
+              )
           }
         }
       }
