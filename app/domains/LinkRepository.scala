@@ -153,17 +153,15 @@ class LinkRepository @Inject()(pool: RedisClientPool, tagRepository: TagReposito
 
     pool.withClient {
       client => {
-        JSONLinks.asInstanceOf[JsArray].value foreach { link =>
-          val datetime: DateTime = new DateTime((link \ "time").as[String])
-
-          client.zadd("links", datetime.getMillis, link).get
-
-          (link \ "tags").as[String].split(" ").foreach { tag =>
-            tags += (tag -> (tags.getOrElse(tag, 0) + 1))
-            tagRepository.createLinkForTag(tag, link)
-          }
+        JSONLinks.asInstanceOf[JsArray].value foreach { JSONLink =>
+          val link: JsValue = JsObject(Seq(
+            "title" -> JsString((JSONLink \ "description").as[String]),
+            "description" -> JsString((JSONLink \ "extended").as[String]),
+            "url" -> JsString((JSONLink \ "href").as[String]),
+            "tags" -> JsArray((JSONLink \ "tags").as[String].split(" ").map(JsString))
+          ))
+          create(link)
         }
-        tagRepository.createOrUpdateFromImport(tags)
       }
     }
   }

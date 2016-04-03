@@ -7,8 +7,6 @@ import com.redis.RedisClientPool
 import models.Tag
 import play.api.libs.json._
 
-import scala.collection.mutable
-
 class TagRepository @Inject()(pool: RedisClientPool) {
   def findByPattern(pattern: Option[String]) = {
     pool.withClient {
@@ -50,16 +48,6 @@ class TagRepository @Inject()(pool: RedisClientPool) {
     pool.withClient {
       client => {
         client.sadd("tags:" + tagName, link)
-      }
-    }
-  }
-
-  def createOrUpdateFromImport(tags: collection.mutable.Map[String, Int]) = {
-    pool.withClient {
-      client => {
-        tags map { tag =>
-          client.zincrby("tags", tag._2, tag._1).get
-        }
       }
     }
   }
